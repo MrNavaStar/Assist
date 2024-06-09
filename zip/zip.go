@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func compress(filename string, files []string) error {
+func Compress(filename string, files []string) error {
 	arc, err := os.Create(filename)
 	if err != nil {
 		return err
@@ -54,10 +54,10 @@ func compress(filename string, files []string) error {
 	return nil
 }
 
-// decompress a zip archive, moving all files and folders
+// Decompress a zip archive, moving all files and folders
 // within the zip file (parameter 1) to an output directory (parameter 2).
 // Credits to https://golangcode.com/unzip-files-in-go/
-func decompress(src string, dest string) ([]string, error) {
+func Decompress(src string, dest string) ([]string, error) {
 	var outFile *os.File
 	var zipFile io.ReadCloser
 	var filenames []string
