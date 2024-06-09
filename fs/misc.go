@@ -30,15 +30,13 @@ func Expand(path string) (string, error) {
 
 // Exists returns true if the path exists.
 func Exists(path string) bool {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return false
-	}
-	return true
+	_, err := os.Stat(path)
+	return !os.IsNotExist(err)
 }
 
-// Chdir changes the process current working directory to the specified
+// Cwd changes the process current working directory to the specified
 // one, executes the callback and then restores the original working directory.
-func Chdir(path string, cb func() error) error {
+func Cwd(path string, cb func() error) error {
 	cwdLock.Lock()
 	defer cwdLock.Unlock()
 

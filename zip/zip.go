@@ -9,10 +9,55 @@ import (
 	"strings"
 )
 
-// Unzip will decompress a zip archive, moving all files and folders
+func compress(filename string, files []string) error {
+	arc, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer arc.Close()
+
+	writer := zip.NewWriter(arc)
+	defer writer.Close()
+
+	for _, file := range files {
+		in, err := os.Open(file)
+		if err != nil {
+			return err
+		}
+		defer in.Close()
+
+		info, err := in.Stat()
+		if err != nil {
+			return err
+		}
+
+		header, err := zip.FileInfoHeader(info)
+		if err != nil {
+			return err
+		}
+
+		// Using FileInfoHeader() above only uses the basename of the file. If we want
+		// to preserve the folder structure we can overwrite this with the full path.
+		header.Name = file
+		// Change to deflate to gain better compression
+		// see http://golang.org/pkg/archive/zip/#pkg-constants
+		header.Method = zip.Deflate
+
+		w, err := writer.CreateHeader(header)
+		if err != nil {
+			return err
+		}
+		if _, err = io.Copy(w, in); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// decompress a zip archive, moving all files and folders
 // within the zip file (parameter 1) to an output directory (parameter 2).
 // Credits to https://golangcode.com/unzip-files-in-go/
-func Unzip(src string, dest string) ([]string, error) {
+func decompress(src string, dest string) ([]string, error) {
 	var outFile *os.File
 	var zipFile io.ReadCloser
 	var filenames []string
@@ -74,6 +119,5 @@ func Unzip(src string, dest string) ([]string, error) {
 			return filenames, err
 		}
 	}
-
 	return filenames, nil
 }

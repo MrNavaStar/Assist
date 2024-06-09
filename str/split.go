@@ -9,7 +9,7 @@ import (
 func SplitBy(sv string, sep string) []string {
 	filtered := make([]string, 0)
 	for _, part := range strings.Split(sv, sep) {
-		part = Trim(part)
+		part = strings.TrimSpace(part)
 		if part != "" {
 			filtered = append(filtered, part)
 		}
