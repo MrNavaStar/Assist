@@ -12,5 +12,5 @@ func Ternary(cond bool, posVal interface{}, negVal interface{}) interface{} {
 }
 
 func IsEmpty(i interface{}) bool {
-	return reflect.ValueOf(i).Len() == 0
+	return reflect.ValueOf(i).IsZero()
 }
