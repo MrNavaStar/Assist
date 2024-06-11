@@ -42,11 +42,11 @@ func (buf *Buffer) WriteBytes(b []byte) {
 }
 
 func (buf *Buffer) WriteU16(u uint16) {
-	binary.BigEndian.PutUint16(buf.Data[buf.Index:buf.Index+2], u)
+	buf.Data = append(buf.Data, byte(u>>8), byte(u))
 	buf.Index += 2
 }
 
 func (buf *Buffer) WriteU32(u uint32) {
-	binary.BigEndian.PutUint32(buf.Data[buf.Index:buf.Index+4], u)
+	buf.Data = append(buf.Data, byte(u>>24), byte(u>>16), byte(u>>8), byte(u))
 	buf.Index += 4
 }
