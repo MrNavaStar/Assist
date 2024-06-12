@@ -24,7 +24,6 @@ func Compress(filename string, files []string) error {
 		if err != nil {
 			return err
 		}
-		defer in.Close()
 
 		info, err := in.Stat()
 		if err != nil {
@@ -50,6 +49,7 @@ func Compress(filename string, files []string) error {
 		if _, err = io.Copy(w, in); err != nil {
 			return err
 		}
+		in.Close()
 	}
 	return nil
 }
@@ -64,7 +64,7 @@ func Decompress(src string, dest string) ([]string, error) {
 
 	r, err := zip.OpenReader(src)
 	if err != nil {
-		return filenames, err
+		return nil, err
 	}
 	defer r.Close()
 
@@ -83,7 +83,7 @@ func Decompress(src string, dest string) ([]string, error) {
 	for _, f := range r.File {
 		zipFile, err = f.Open()
 		if err != nil {
-			return filenames, err
+			return nil, err
 		}
 
 		// Store filename/path for returning and using later on
@@ -92,31 +92,34 @@ func Decompress(src string, dest string) ([]string, error) {
 		// Check for ZipSlip. More Info: https://snyk.io/research/zip-slip-vulnerability#go
 		if !strings.HasPrefix(fpath, filepath.Clean(dest)+string(os.PathSeparator)) {
 			clean()
-			return filenames, fmt.Errorf("%s: illegal file path", fpath)
+			return nil, fmt.Errorf("%s: illegal file path", fpath)
 		}
 
-		filenames = append(filenames, fpath)
 		if f.FileInfo().IsDir() {
-			os.MkdirAll(fpath, os.ModePerm)
+			if err := os.MkdirAll(fpath, os.ModePerm); err != nil {
+				return nil, err
+			}
 			clean()
 			continue
+		} else {
+			filenames = append(filenames, fpath)
 		}
 
 		if err = os.MkdirAll(filepath.Dir(fpath), os.ModePerm); err != nil {
 			clean()
-			return filenames, err
+			return nil, err
 		}
 
 		outFile, err = os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
 		if err != nil {
 			clean()
-			return filenames, err
+			return nil, err
 		}
 
 		_, err = io.Copy(outFile, zipFile)
 		clean()
 		if err != nil {
-			return filenames, err
+			return nil, err
 		}
 	}
 	return filenames, nil
