@@ -58,8 +58,6 @@ func Compress(filename string, files []string) error {
 // within the zip file (parameter 1) to an output directory (parameter 2).
 // Credits to https://golangcode.com/unzip-files-in-go/
 func Decompress(src string, dest string) ([]string, error) {
-	var outFile *os.File
-	var zipFile io.ReadCloser
 	var filenames []string
 
 	r, err := zip.OpenReader(src)
@@ -68,59 +66,37 @@ func Decompress(src string, dest string) ([]string, error) {
 	}
 	defer r.Close()
 
-	clean := func() {
-		if outFile != nil {
-			outFile.Close()
-			outFile = nil
-		}
-
-		if zipFile != nil {
-			zipFile.Close()
-			zipFile = nil
-		}
-	}
-
 	for _, f := range r.File {
-		zipFile, err = f.Open()
+		zipFile, err := f.Open()
 		if err != nil {
 			return nil, err
 		}
 
-		// Store filename/path for returning and using later on
-		fpath := filepath.Join(dest, f.Name)
-
 		// Check for ZipSlip. More Info: https://snyk.io/research/zip-slip-vulnerability#go
-		if !strings.HasPrefix(fpath, filepath.Clean(dest)+string(os.PathSeparator)) {
-			clean()
-			return nil, fmt.Errorf("%s: illegal file path", fpath)
+		path := filepath.Join(dest, f.Name)
+		if !strings.HasPrefix(path, filepath.Clean(dest)+string(os.PathSeparator)) {
+			return nil, fmt.Errorf("%s: illegal file path", path)
 		}
 
 		if f.FileInfo().IsDir() {
-			if err := os.MkdirAll(fpath, os.ModePerm); err != nil {
-				return nil, err
-			}
-			clean()
 			continue
-		} else {
-			filenames = append(filenames, fpath)
 		}
 
-		if err = os.MkdirAll(filepath.Dir(fpath), os.ModePerm); err != nil {
-			clean()
+		filenames = append(filenames, path)
+		if err = os.MkdirAll(filepath.Dir(path), os.ModePerm); err != nil {
 			return nil, err
 		}
 
-		outFile, err = os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+		outFile, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
 		if err != nil {
-			clean()
 			return nil, err
 		}
 
 		_, err = io.Copy(outFile, zipFile)
-		clean()
 		if err != nil {
 			return nil, err
 		}
+		zipFile.Close()
 	}
 	return filenames, nil
 }
