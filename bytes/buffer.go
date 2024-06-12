@@ -2,6 +2,7 @@ package bytes
 
 import (
 	"encoding/binary"
+	"io"
 )
 
 type Buffer struct {
@@ -55,4 +56,13 @@ func (buf *Buffer) WriteU16(u uint16) {
 func (buf *Buffer) WriteU32(u uint32) {
 	*buf.Data = append(*buf.Data, byte(u>>24), byte(u>>16), byte(u>>8), byte(u))
 	buf.Index += 4
+}
+
+func (buf *Buffer) WriteReader(reader io.Reader) error {
+	read, err := reader.Read(*buf.Data)
+	if err != nil {
+		return err
+	}
+	buf.Index += read
+	return nil
 }
