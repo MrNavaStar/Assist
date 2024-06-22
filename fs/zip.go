@@ -67,6 +67,10 @@ func Decompress(src string, dest string) ([]string, error) {
 	defer r.Close()
 
 	for _, f := range r.File {
+		if f.FileInfo().IsDir() {
+			continue
+		}
+
 		zipFile, err := f.Open()
 		if err != nil {
 			return nil, err
@@ -76,10 +80,6 @@ func Decompress(src string, dest string) ([]string, error) {
 		path := filepath.Join(dest, f.Name)
 		if !strings.HasPrefix(path, filepath.Clean(dest)+string(os.PathSeparator)) {
 			return nil, fmt.Errorf("%s: illegal file path", path)
-		}
-
-		if f.FileInfo().IsDir() {
-			continue
 		}
 
 		filenames = append(filenames, path)

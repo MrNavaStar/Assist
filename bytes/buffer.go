@@ -2,7 +2,6 @@ package bytes
 
 import (
 	"encoding/binary"
-	"io"
 )
 
 type Buffer struct {
@@ -38,14 +37,15 @@ func (buf *Buffer) ReadU32() uint32 {
 	return binary.BigEndian.Uint32((*buf.Data)[buf.Index-4 : buf.Index])
 }
 
+func (buf *Buffer) Write(p []byte) (n int, err error) {
+	*buf.Data = append(*buf.Data, p...)
+	buf.Index += len(p)
+	return len(p), nil
+}
+
 func (buf *Buffer) WriteByte(b byte) {
 	*buf.Data = append(*buf.Data, b)
 	buf.Index++
-}
-
-func (buf *Buffer) WriteBytes(b []byte) {
-	*buf.Data = append(*buf.Data, b...)
-	buf.Index += len(b)
 }
 
 func (buf *Buffer) WriteU16(u uint16) {
@@ -56,13 +56,4 @@ func (buf *Buffer) WriteU16(u uint16) {
 func (buf *Buffer) WriteU32(u uint32) {
 	*buf.Data = append(*buf.Data, byte(u>>24), byte(u>>16), byte(u>>8), byte(u))
 	buf.Index += 4
-}
-
-func (buf *Buffer) WriteReader(reader io.Reader) error {
-	read, err := reader.Read(*buf.Data)
-	if err != nil {
-		return err
-	}
-	buf.Index += read
-	return nil
 }
