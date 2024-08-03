@@ -8,7 +8,7 @@ type RWCloser struct {
 	io.WriteCloser
 }
 
-func (rw rwCloser) Close() error {
+func (rw RWCloser) Close() error {
 	err := rw.ReadCloser.Close()
 	if err := rw.WriteCloser.Close(); err != nil {
 		return err
