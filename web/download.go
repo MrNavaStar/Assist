@@ -16,13 +16,6 @@ func Download(filepath string, filename string, url string) (err error) {
 	if err := os.MkdirAll(filepath, os.ModePerm); err != nil {
 		return err
 	}
-
-	// Get the data
-	resp, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
 	
 	// Create the file
 	out, err := os.Create(filepath + "/" + filename)
@@ -30,6 +23,13 @@ func Download(filepath string, filename string, url string) (err error) {
 		return err
 	}
 	defer out.Close()
+
+	// Get the data
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
 
 	// Check server response
 	if resp.StatusCode != http.StatusOK {
