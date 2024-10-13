@@ -17,19 +17,19 @@ func Download(filepath string, filename string, url string) (err error) {
 		return err
 	}
 
-	// Create the file
-	out, err := os.Create(filepath + "/" + filename)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
 	// Get the data
 	resp, err := http.Get(url)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
+	
+	// Create the file
+	out, err := os.Create(filepath + "/" + filename)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
 
 	// Check server response
 	if resp.StatusCode != http.StatusOK {
