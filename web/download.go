@@ -27,18 +27,21 @@ func Download(filepath string, filename string, url string) (err error) {
 	// Get the data
 	resp, err := http.Get(url)
 	if err != nil {
+		os.Remove(filepath + "/" + filename)
 		return err
 	}
 	defer resp.Body.Close()
 
 	// Check server response
 	if resp.StatusCode != http.StatusOK {
+		os.Remove(filepath + "/" + filename)
 		return fmt.Errorf("failed to download: %s bad status: %s", url, resp.Status)
 	}
 
 	// Writer the body to file
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
+		os.Remove(filepath + "/" + filename)
 		return err
 	}
 	return
