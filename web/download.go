@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path"
 
 	"github.com/mrnavastar/assist/fs"
 )
@@ -14,7 +15,7 @@ func Download(file string, url string) (err error) {
 	if fs.Exists(file) {
 		return nil
 	}
-	if err := os.MkdirAll(file, os.ModePerm); err != nil {
+	if err := os.MkdirAll(path.Dir(file), os.ModePerm); err != nil {
 		return err
 	}
 
